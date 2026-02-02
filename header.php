@@ -59,62 +59,81 @@
         
         <!-- Desktop Menu -->
         <div class="nav-menu">
-            <?php
-            if (has_nav_menu('primary')) {
-                wp_nav_menu(array(
-                    'theme_location' => 'primary',
-                    'container' => false,
-                    'menu_class' => 'nav-links',
-                ));
-            } else {
-                // Fallback: mostrar categorías de WooCommerce como menú
-                echo '<ul class="nav-links">';
-                if (class_exists('WooCommerce')) {
-                    echo '<li><a href="' . esc_url(get_permalink(wc_get_page_id('shop'))) . '">Catálogo</a></li>';
-                    $categories = get_terms(array('taxonomy' => 'product_cat', 'hide_empty' => true, 'parent' => 0, 'number' => 5));
-                    if (!is_wp_error($categories)) {
-                        foreach ($categories as $cat) {
-                            echo '<li><a href="' . esc_url(get_term_link($cat)) . '">' . esc_html($cat->name) . '</a></li>';
+            <ul class="nav-links">
+                <!-- Categorías con Dropdown -->
+                <li class="menu-item-has-children">
+                    <a href="<?php echo esc_url(get_permalink(wc_get_page_id('shop'))); ?>">Categorías</a>
+                    <ul class="sub-menu">
+                        <?php
+                        if (class_exists('WooCommerce')) {
+                            $categories = get_terms(array(
+                                'taxonomy' => 'product_cat',
+                                'hide_empty' => true,
+                                'parent' => 0,
+                                'exclude' => array(get_option('default_product_cat')),
+                                'orderby' => 'name',
+                                'order' => 'ASC',
+                            ));
+                            if (!is_wp_error($categories) && !empty($categories)) {
+                                foreach ($categories as $cat) {
+                                    echo '<li><a href="' . esc_url(get_term_link($cat)) . '">' . esc_html($cat->name) . '</a></li>';
+                                }
+                            }
                         }
-                    }
-                }
-                echo '</ul>';
-            }
-            ?>
+                        ?>
+                        <li class="view-all"><a href="<?php echo esc_url(get_permalink(wc_get_page_id('shop'))); ?>">Ver todo</a></li>
+                    </ul>
+                </li>
+                
+                <!-- Catálogo -->
+                <li>
+                    <a href="<?php echo esc_url(get_permalink(wc_get_page_id('shop'))); ?>">Catálogo</a>
+                </li>
+                
+                <!-- Contacto - scroll al footer -->
+                <li>
+                    <a href="#footer-contacto">Contacto</a>
+                </li>
+            </ul>
         </div>
     </header>
 
     <!-- Mobile Menu -->
     <div class="mobile-menu" id="mobileMenu">
-        <?php
-        // Primero intenta el menú móvil, si no existe usa el primario
-        if (has_nav_menu('mobile')) {
-            wp_nav_menu(array(
-                'theme_location' => 'mobile',
-                'container' => false,
-                'menu_class' => 'mobile-nav-links',
-            ));
-        } elseif (has_nav_menu('primary')) {
-            wp_nav_menu(array(
-                'theme_location' => 'primary',
-                'container' => false,
-                'menu_class' => 'mobile-nav-links',
-            ));
-        } else {
-            // Fallback con categorías de WooCommerce
-            echo '<ul class="mobile-nav-links">';
+        <ul class="mobile-nav-links">
+            <!-- Catálogo -->
+            <li>
+                <a href="<?php echo esc_url(get_permalink(wc_get_page_id('shop'))); ?>">Ver todo el catálogo</a>
+            </li>
+            
+            <!-- Categorías en móvil -->
+            <?php
             if (class_exists('WooCommerce')) {
-                echo '<li><a href="' . esc_url(get_permalink(wc_get_page_id('shop'))) . '">Catálogo</a></li>';
-                $categories = get_terms(array('taxonomy' => 'product_cat', 'hide_empty' => true, 'parent' => 0, 'number' => 5));
-                if (!is_wp_error($categories)) {
+                $categories = get_terms(array(
+                    'taxonomy' => 'product_cat',
+                    'hide_empty' => true,
+                    'parent' => 0,
+                    'exclude' => array(get_option('default_product_cat')),
+                    'orderby' => 'name',
+                    'order' => 'ASC',
+                ));
+                if (!is_wp_error($categories) && !empty($categories)) {
                     foreach ($categories as $cat) {
                         echo '<li><a href="' . esc_url(get_term_link($cat)) . '">' . esc_html($cat->name) . '</a></li>';
                     }
                 }
             }
-            echo '</ul>';
-        }
-        ?>
+            ?>
+            
+            <!-- Novedades y Ofertas -->
+            <li><a href="<?php echo esc_url(get_permalink(wc_get_page_id('shop')) . '?orderby=date'); ?>">Novedades</a></li>
+            <li><a href="<?php echo esc_url(get_permalink(wc_get_page_id('shop')) . '?on_sale=true'); ?>">Ofertas</a></li>
+            
+            <!-- Contacto -->
+            <?php if ($contact_page) : ?>
+            <li><a href="<?php echo esc_url(get_permalink($contact_page)); ?>">Contacto</a></li>
+            <?php endif; ?>
+        </ul>
     </div>
 
     <!-- Search Overlay -->

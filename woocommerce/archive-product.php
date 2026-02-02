@@ -162,8 +162,12 @@ $category_description = is_product_category() ? $current_category->description :
                     ?>
                     <article class="product-card" data-product-id="<?php echo esc_attr($product_id); ?>" data-category="<?php echo esc_attr($category_name); ?>">
                         <a href="<?php the_permalink(); ?>" class="product-image">
-                            <?php if (has_post_thumbnail()) : ?>
-                                <?php the_post_thumbnail('woocommerce_thumbnail', array('alt' => get_the_title())); ?>
+                            <?php if (has_post_thumbnail()) : 
+                                // Usar imagen grande para mejor calidad
+                                $image_id = get_post_thumbnail_id();
+                                $image_url = wp_get_attachment_image_url($image_id, 'large');
+                                ?>
+                                <img src="<?php echo esc_url($image_url); ?>" alt="<?php the_title_attribute(); ?>">
                             <?php else : ?>
                                 <img src="<?php echo esc_url(wc_placeholder_img_src()); ?>" alt="<?php the_title_attribute(); ?>">
                             <?php endif; ?>

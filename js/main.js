@@ -5,6 +5,25 @@
 document.addEventListener('DOMContentLoaded', function() {
     
     // ============================================
+    // SCROLL SUAVE PARA ENLACES INTERNOS
+    // ============================================
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            const targetId = this.getAttribute('href');
+            if (targetId === '#') return;
+            
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+                e.preventDefault();
+                targetElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+    
+    // ============================================
     // MENÚ MÓVIL
     // ============================================
     const menuToggle = document.getElementById('menuToggle');
@@ -28,6 +47,40 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+    
+    // ============================================
+    // DROPDOWN CATEGORÍAS DESKTOP
+    // ============================================
+    const dropdownItems = document.querySelectorAll('.nav-links .menu-item-has-children');
+    
+    dropdownItems.forEach(item => {
+        const link = item.querySelector(':scope > a');
+        
+        if (link) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Cerrar otros dropdowns abiertos
+                dropdownItems.forEach(other => {
+                    if (other !== item) {
+                        other.classList.remove('open');
+                    }
+                });
+                
+                // Toggle del dropdown actual
+                item.classList.toggle('open');
+            });
+        }
+    });
+    
+    // Cerrar dropdown al hacer clic fuera
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.menu-item-has-children')) {
+            dropdownItems.forEach(item => {
+                item.classList.remove('open');
+            });
+        }
+    });
     
     // ============================================
     // HEADER SCROLL
@@ -65,16 +118,39 @@ document.addEventListener('DOMContentLoaded', function() {
     // CARRITO - WooCommerce Integration
     // ============================================
     const cart = {
-        updateUI: function() {
+        updateUI: function(count) {
             const countElements = document.querySelectorAll('.cart-count');
             countElements.forEach(el => {
-                const count = parseInt(el.textContent) || 0;
-                el.style.display = count > 0 ? 'flex' : 'none';
+                if (typeof count !== 'undefined') {
+                    el.textContent = count;
+                }
+                const currentCount = parseInt(el.textContent) || 0;
+                el.style.display = currentCount > 0 ? 'flex' : 'none';
             });
+        },
+        // Obtener el conteo real del carrito via AJAX
+        fetchCount: function() {
+            if (typeof aluria_ajax !== 'undefined') {
+                fetch(aluria_ajax.ajax_url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'action=aluria_get_cart_count'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.count !== undefined) {
+                        this.updateUI(data.count);
+                    }
+                })
+                .catch(err => console.log('Cart count error:', err));
+            }
         }
     };
     
-    cart.updateUI();
+    // Actualizar contador al cargar la página
+    cart.fetchCount();
     window.aluriCart = cart;
     
     // ============================================

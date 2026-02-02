@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
 /**
  * Define Constants
  */
-define('ALURIA_VERSION', '1.0.0');
+define('ALURIA_VERSION', '1.1.4');
 define('ALURIA_DIR', get_template_directory());
 define('ALURIA_URI', get_template_directory_uri());
 
@@ -63,8 +63,15 @@ function aluria_setup() {
     // Add theme support for selective refresh for widgets
     add_theme_support('customize-selective-refresh-widgets');
 
-    // WooCommerce support
-    add_theme_support('woocommerce');
+    // WooCommerce support - Imágenes de alta calidad
+    add_theme_support('woocommerce', array(
+        'thumbnail_image_width' => 800,
+        'single_image_width'    => 1200,
+        'product_grid'          => array(
+            'default_rows'    => 4,
+            'default_columns' => 4,
+        ),
+    ));
     add_theme_support('wc-product-gallery-zoom');
     add_theme_support('wc-product-gallery-lightbox');
     add_theme_support('wc-product-gallery-slider');
@@ -160,7 +167,7 @@ function aluria_scripts() {
     wp_enqueue_style('aluria-pages', ALURIA_URI . '/css/pages.css', array('aluria-style'), ALURIA_VERSION);
 
     // Main JavaScript
-    wp_enqueue_script('aluria-main', ALURIA_URI . '/js/main.js', array('jquery'), ALURIA_VERSION, true);
+    wp_enqueue_script('aluria-main', ALURIA_URI . '/js/main.js', array(), ALURIA_VERSION, true);
 
     // WooCommerce JavaScript (if WooCommerce is active)
     if (class_exists('WooCommerce')) {
@@ -679,3 +686,34 @@ function aluria_product_search_ajax() {
 }
 add_action('wp_ajax_aluria_product_search', 'aluria_product_search_ajax');
 add_action('wp_ajax_nopriv_aluria_product_search', 'aluria_product_search_ajax');
+
+/**
+ * AJAX: Get Cart Count
+ */
+function aluria_get_cart_count_ajax() {
+    $count = 0;
+    if (class_exists('WooCommerce') && WC()->cart) {
+        $count = WC()->cart->get_cart_contents_count();
+    }
+    wp_send_json(array('count' => $count));
+}
+add_action('wp_ajax_aluria_get_cart_count', 'aluria_get_cart_count_ajax');
+add_action('wp_ajax_nopriv_aluria_get_cart_count', 'aluria_get_cart_count_ajax');
+
+/**
+ * Forzar imágenes de mayor tamaño en el catálogo de WooCommerce
+ */
+function aluria_woocommerce_image_size_gallery_thumbnail($size) {
+    return 'large';
+}
+add_filter('woocommerce_gallery_thumbnail_size', 'aluria_woocommerce_image_size_gallery_thumbnail');
+
+function aluria_woocommerce_image_size_thumbnail($size) {
+    return 'large';
+}
+add_filter('woocommerce_product_loop_start', function() {
+    add_filter('post_thumbnail_size', 'aluria_woocommerce_image_size_thumbnail');
+});
+add_filter('woocommerce_product_loop_end', function() {
+    remove_filter('post_thumbnail_size', 'aluria_woocommerce_image_size_thumbnail');
+});

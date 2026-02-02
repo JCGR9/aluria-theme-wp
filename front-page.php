@@ -8,87 +8,19 @@
 get_header();
 ?>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-content">
-            <p class="hero-subtitle"><?php echo esc_html(get_theme_mod('hero_subtitle', 'Nueva Colección')); ?></p>
-            <h1 class="hero-title"><?php echo esc_html(get_theme_mod('hero_title', 'Aluria 2026')); ?></h1>
-            <p class="hero-description"><?php echo esc_html(get_theme_mod('hero_description', 'Tu moda cómoda y actual para cada día')); ?></p>
+    <!-- Hero Section - Imagen a ancho completo -->
+    <section class="hero hero-fullwidth">
+        <div class="hero-background">
+            <img src="<?php echo esc_url(get_template_directory_uri()); ?>/img/header.jpeg" alt="Aluria Modas">
+        </div>
+        <div class="hero-overlay">
             <?php 
             $shop_url = class_exists('WooCommerce') ? get_permalink(wc_get_page_id('shop')) : home_url('/shop/');
             $hero_link = get_theme_mod('hero_button_link', $shop_url);
             ?>
-            <a href="<?php echo esc_url($hero_link); ?>" class="btn btn-primary">
+            <a href="<?php echo esc_url($hero_link); ?>" class="btn btn-primary btn-hero">
                 <?php echo esc_html(get_theme_mod('hero_button_text', 'Ver catálogo')); ?>
             </a>
-        </div>
-        <div class="hero-image">
-            <?php 
-            $hero_image = get_theme_mod('hero_image');
-            if ($hero_image) : ?>
-                <img src="<?php echo esc_url($hero_image); ?>" alt="<?php echo esc_attr(get_theme_mod('hero_title', 'Aluria Modas')); ?>">
-            <?php else : ?>
-                <img src="<?php echo esc_url(get_template_directory_uri()); ?>/img/productos/chaleco-tachuelas.png" alt="Aluria Modas">
-            <?php endif; ?>
-        </div>
-    </section>
-
-    <!-- Categorías -->
-    <section class="categories">
-        <div class="container">
-            <h2 class="section-title"><?php esc_html_e('Colecciones', 'aluria'); ?></h2>
-            <div class="categories-grid">
-                <?php
-                $product_categories = get_terms(array(
-                    'taxonomy' => 'product_cat',
-                    'hide_empty' => true,
-                    'parent' => 0,
-                    'exclude' => array(get_option('default_product_cat')),
-                    'number' => 4,
-                ));
-
-                if (!empty($product_categories) && !is_wp_error($product_categories)) :
-                    foreach ($product_categories as $category) :
-                        $thumbnail_id = get_term_meta($category->term_id, 'thumbnail_id', true);
-                        $image = wp_get_attachment_url($thumbnail_id);
-                        ?>
-                        <a href="<?php echo esc_url(get_term_link($category)); ?>" class="category-card">
-                            <div class="category-image">
-                                <?php if ($image) : ?>
-                                    <img src="<?php echo esc_url($image); ?>" alt="<?php echo esc_attr($category->name); ?>">
-                                <?php elseif (function_exists('wc_placeholder_img_src')) : ?>
-                                    <img src="<?php echo esc_url(wc_placeholder_img_src()); ?>" alt="<?php echo esc_attr($category->name); ?>">
-                                <?php else : ?>
-                                    <img src="<?php echo esc_url(get_template_directory_uri()); ?>/img/productos/placeholder.png" alt="<?php echo esc_attr($category->name); ?>">
-                                <?php endif; ?>
-                            </div>
-                            <h3 class="category-name"><?php echo esc_html($category->name); ?></h3>
-                        </a>
-                        <?php
-                    endforeach;
-                else :
-                    // Fallback categories con imágenes del tema
-                    $fallback_categories = array(
-                        array('name' => 'Vestidos', 'slug' => 'vestidos', 'img' => 'vestido-cuadros-volante.png'),
-                        array('name' => 'Blusas', 'slug' => 'blusas', 'img' => 'camisa-cuadros-vichy-lazo.jpg'),
-                        array('name' => 'Pantalones', 'slug' => 'pantalones', 'img' => 'pantalon-palazo-gris.png'),
-                        array('name' => 'Complementos', 'slug' => 'complementos', 'img' => 'abrigo-sin-manga-pelos.png'),
-                    );
-                    foreach ($fallback_categories as $cat) :
-                        $img_url = ALURIA_URI . '/img/productos/' . $cat['img'];
-                        $cat_link = class_exists('WooCommerce') ? home_url('/product-category/' . $cat['slug']) : '#';
-                        ?>
-                        <a href="<?php echo esc_url($cat_link); ?>" class="category-card">
-                            <div class="category-image">
-                                <img src="<?php echo esc_url($img_url); ?>" alt="<?php echo esc_attr($cat['name']); ?>">
-                            </div>
-                            <h3 class="category-name"><?php echo esc_html($cat['name']); ?></h3>
-                        </a>
-                        <?php
-                    endforeach;
-                endif;
-                ?>
-            </div>
         </div>
     </section>
 
@@ -102,7 +34,7 @@ get_header();
                 $args = array(
                     'post_type' => 'product',
                     'post_status' => 'publish',
-                    'posts_per_page' => 4,
+                    'posts_per_page' => 12,
                     'orderby' => 'date',
                     'order' => 'DESC',
                     'tax_query' => array(
@@ -149,8 +81,12 @@ get_header();
                         ?>
                         <article class="product-card" data-product-id="<?php echo esc_attr($product_id); ?>" data-category="<?php echo esc_attr($category_name); ?>">
                             <a href="<?php the_permalink(); ?>" class="product-image">
-                                <?php if (has_post_thumbnail()) : ?>
-                                    <?php the_post_thumbnail('woocommerce_thumbnail', array('alt' => get_the_title())); ?>
+                                <?php if (has_post_thumbnail()) : 
+                                    // Usar imagen grande para mejor calidad
+                                    $image_id = get_post_thumbnail_id();
+                                    $image_url = wp_get_attachment_image_url($image_id, 'large');
+                                    ?>
+                                    <img src="<?php echo esc_url($image_url); ?>" alt="<?php the_title_attribute(); ?>">
                                 <?php else : ?>
                                     <img src="<?php echo esc_url(wc_placeholder_img_src()); ?>" alt="<?php the_title_attribute(); ?>">
                                 <?php endif; ?>

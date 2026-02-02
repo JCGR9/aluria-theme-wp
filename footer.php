@@ -1,7 +1,7 @@
     </main><!-- #main -->
 
     <!-- Footer -->
-    <footer class="footer">
+    <footer class="footer" id="footer-contacto">
         <div class="footer-container">
             <div class="footer-grid">
                 <!-- Column 1 - Brand -->
